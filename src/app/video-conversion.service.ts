@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import { BehaviorSubject } from "rxjs";
-import { FFMessageLoadConfig } from "@ffmpeg/ffmpeg/dist/esm/types";
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { BehaviorSubject } from 'rxjs';
+import { FFMessageLoadConfig } from '@ffmpeg/ffmpeg/dist/esm/types';
 
 @Injectable({ providedIn: 'root' })
 export class VideoConversionService {
@@ -14,9 +14,11 @@ export class VideoConversionService {
   async loadFFmpeg(isMultiThreadOption: boolean) {
     this.ffmpeg = new FFmpeg();
     this.ffmpeg.on('log', ({ message }) => {
-      this.message.next( message)
+      this.message.next(message);
     });
-    const config = isMultiThreadOption ? await this.getMultiThreadConfig() : await this.getSingleThreadConfig();
+    const config = isMultiThreadOption
+      ? await this.getMultiThreadConfig()
+      : await this.getSingleThreadConfig();
     try {
       await this.ffmpeg.load(config);
     } catch (error) {
@@ -26,24 +28,18 @@ export class VideoConversionService {
   private async getSingleThreadConfig(): Promise<FFMessageLoadConfig> {
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
     return {
-      coreURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.js`,
-        'text/javascript'
-      ),
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
       wasmURL: await toBlobURL(
         `${baseURL}/ffmpeg-core.wasm`,
         'application/wasm'
       ),
-      classWorkerURL: 'assets/ffmpeg/worker.js'
+      classWorkerURL: 'assets/ffmpeg/worker.js',
     };
   }
   private async getMultiThreadConfig(): Promise<FFMessageLoadConfig> {
     const baseURL = 'https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm';
     return {
-      coreURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.js`,
-        'text/javascript'
-      ),
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
       wasmURL: await toBlobURL(
         `${baseURL}/ffmpeg-core.wasm`,
         'application/wasm'
@@ -80,18 +76,18 @@ export class VideoConversionService {
       '480x360', // Reduced resolution
       '-crf',
       '28', // Slightly reduced quality for speed
-      'output.mp4' // Output file
+      'output.mp4', // Output file
     ]);
-    this.message.next(  'Conversion completed.');
+    this.message.next('Conversion completed.');
 
     const endTime = performance.now();
     const diffTime = ((endTime - startTime) / 1000).toFixed(2);
-    this.conversionTime.next(  ` ${diffTime} s`);
+    this.conversionTime.next(` ${diffTime} s`);
 
     const data = (await this.ffmpeg.readFile('output.mp4')) as any;
-    this.convertedVideoSrc.next( URL.createObjectURL(
-      new Blob([data.buffer], { type: 'video/mp4' })
-    ));
+    this.convertedVideoSrc.next(
+      URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }))
+    );
   }
   private checkIfFmpegLoaded() {
     if (this.ffmpeg.loaded) {
